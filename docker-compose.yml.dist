@@ -1,7 +1,8 @@
 data:
   image: tianon/true
   volumes:
-    - ./data/wordpress:/var/www/html
+    - ./data/wordpress:/var/www/html/wp-content
+    - ./data/mysql:/var/lib/mysql
 
 wordpress:
   image: wordpress
@@ -18,3 +19,5 @@ wordpress_db:
   image: mariadb
   environment:
     MYSQL_ROOT_PASSWORD: examplepass
+  volumes_from:
+    - data
