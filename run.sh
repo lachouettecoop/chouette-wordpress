@@ -45,11 +45,13 @@ case $1 in
     "")
         docker-compose up -d
         ;;
+
     init)
         test -e docker-compose.yml || cp docker-compose.yml.dist docker-compose.yml
         docker-compose run --rm wordpress_db chown -R mysql:mysql /var/lib/mysql
         docker-compose run --rm wordpress chown -R www-data:www-data /var/www/html
         ;;
+
     upgrade)
         read -rp "Êtes-vous sûr de vouloir effacer et mettre à jour les images et conteneurs Docker ? (o/n) "
         if [[ $REPLY =~ ^[oO]$ ]] ; then
@@ -63,6 +65,7 @@ case $1 in
             $0
         fi
         ;;
+
     prune)
         read -rp "Êtes-vous sûr de vouloir effacer les conteneurs et images Docker innutilisés ? (o/n)"
         if [[ $REPLY =~ ^[oO]$ ]] ; then
@@ -74,9 +77,11 @@ case $1 in
             test "$dangling_images" != "" && docker rmi $dangling_images
         fi
         ;;
+
     bash)
         dc_exec_or_run wordpress "$@"
         ;;
+
     mysql|mysqldump)
         cmd=$1
         shift
@@ -101,9 +106,25 @@ case $1 in
         echo docker exec $option $MYSQL_CONTAINER $cmd --user=root --password="$MYSQL_PASSWORD" wordpress "$@"
         docker exec $option $MYSQL_CONTAINER $cmd --user=root --password="$MYSQL_PASSWORD" wordpress "$@"
         ;;
+
+    dumpall)
+        shift
+        MYSQL_CONTAINER=`container_full_name wordpress_db`
+        MYSQL_PASSWORD=`grep 'MYSQL_ROOT_PASSWORD:' docker-compose.yml|cut '-d:' -f2 |xargs`
+        docker exec $MYSQL_CONTAINER mysqldump --user=root --password="$MYSQL_PASSWORD" --all-databases --events "$@"
+        ;;
+
+    restoreall)
+        shift
+        MYSQL_CONTAINER=`container_full_name wordpress_db`
+        MYSQL_PASSWORD=`grep 'MYSQL_ROOT_PASSWORD:' docker-compose.yml|cut '-d:' -f2 |xargs`
+        docker exec -i $MYSQL_CONTAINER mysql --user=root --password="$MYSQL_PASSWORD" "$@"
+        ;;
+
     build|config|create|down|events|exec|kill|logs|pause|port|ps|pull|restart|rm|run|start|stop|unpause|up)
         docker-compose "$@"
         ;;
+
     *)
         cat <<HELP
 Utilisation : $0 [COMMANDE]
@@ -114,7 +135,8 @@ Utilisation : $0 [COMMANDE]
   bash         : lance bash sur le conteneur redmine
   mysql        : lance mysql sur le conteneur mysql, en mode interactif
   mysqldump    : lance mysqldump sur le conteneur mysql
-  mysqlrestore : permet de rediriger un dump vers la commande mysql
+  dumpall      : lance mysqldump --all-databases --events
+  restoreall   : permet de restaure le contenu d'un dumpall
   stop         : stoppe les conteneurs
   rm           : efface les conteneurs
   logs         : affiche les logs des conteneurs
