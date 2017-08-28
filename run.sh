@@ -50,7 +50,7 @@ case $1 in
         test -e docker-compose.yml || cp docker-compose.yml.dist docker-compose.yml
         docker-compose run --rm wordpress_db chown -R mysql:mysql /var/lib/mysql
         docker-compose run --rm wordpress chown -R www-data:www-data /var/www/html
-        VIRTUAL_HOST=`grep VIRTUAL_HOST docker-compose.yml|cut -d= -f2|xargs`
+        VIRTUAL_HOST=`grep VIRTUAL_HOST docker-compose.yml|cut -d= -f2|cut -d, -f1|xargs`
         echo "update wp_options set option_value='https://$VIRTUAL_HOST' where option_name in ('siteurl','home');" | $0 mysql || true
         ;;
 
