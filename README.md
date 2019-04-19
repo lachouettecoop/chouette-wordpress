@@ -1,7 +1,9 @@
 # chouette-wordpress
 ==============
 
-Le site internet wordpress pour le public
+Nouvelle instance Wordpress créée suite à la tâche #1580
+https://gestion.lachouettecoop.fr/issues/1580#change-5421
+
 
 # Installation
 
